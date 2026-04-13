@@ -147,6 +147,37 @@ def ensure_clean_repo(repo_dir: Path) -> None:
         raise SystemExit(f"tap repo has uncommitted changes: {repo_dir}")
 
 
+def ensure_git_identity(repo_dir: Path) -> None:
+    name = run(
+        ["git", "config", "--local", "--get", "user.name"],
+        cwd=repo_dir,
+        check=False,
+    ).stdout.strip()
+    email = run(
+        ["git", "config", "--local", "--get", "user.email"],
+        cwd=repo_dir,
+        check=False,
+    ).stdout.strip()
+    if name and email:
+        return
+    run(
+        ["git", "config", "--local", "user.name", "github-actions[bot]"],
+        cwd=repo_dir,
+        capture=False,
+    )
+    run(
+        [
+            "git",
+            "config",
+            "--local",
+            "user.email",
+            "41898282+github-actions[bot]@users.noreply.github.com",
+        ],
+        cwd=repo_dir,
+        capture=False,
+    )
+
+
 def update_homebrew_tap(
     meta: ReleaseMetadata,
     *,
@@ -154,6 +185,7 @@ def update_homebrew_tap(
     template_path: Path,
 ) -> None:
     ensure_clean_repo(tap_repo_dir)
+    ensure_git_identity(tap_repo_dir)
     formula = render_homebrew_formula(meta, template_path.read_text(encoding="utf-8"))
     formula_path = tap_repo_dir / "crill.rb"
     if not formula_path.exists() or formula_path.read_text(encoding="utf-8") != formula:
