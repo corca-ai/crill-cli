@@ -186,7 +186,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--template-path",
         type=Path,
-        default=ROOT / "scripts" / "release" / "crill.rb.template",
+        default=ROOT / "scripts" / "release" / "crill.rb",
         help="Homebrew formula template path inside the public repo checkout",
     )
     parser.add_argument(
