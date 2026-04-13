@@ -24,9 +24,9 @@ Installing the binary is public. Using gated product commands is not.
 
 ## Latest Public Release
 
-- Version: `0.2.3`
-- Release: `https://github.com/corca-ai/crill-cli/releases/tag/v0.2.3`
-- Source release mirrored from: `https://github.com/corca-ai/crill/releases/tag/v0.2.3`
+- Version: `0.3.0`
+- Release: `https://github.com/corca-ai/crill-cli/releases/tag/v0.3.0`
+- Source release mirrored from: `https://github.com/corca-ai/crill/releases/tag/v0.3.0`
 
 ## Skill
 
