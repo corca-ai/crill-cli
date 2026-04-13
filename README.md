@@ -24,10 +24,16 @@ Installing the binary is public. Using gated product commands is not.
 
 ## Latest Public Release
 
-- Version: `0.2.2`
-- Release: `https://github.com/corca-ai/crill-cli/releases/tag/v0.2.2`
-- Source release mirrored from: `https://github.com/corca-ai/crill/releases/tag/v0.2.2`
+- Version: `0.2.3`
+- Release: `https://github.com/corca-ai/crill-cli/releases/tag/v0.2.3`
+- Source release mirrored from: `https://github.com/corca-ai/crill/releases/tag/v0.2.3`
 
 ## Skill
 
-The public usage skill lives under [`skills/crill-binary`](skills/crill-binary).
+Install the public operator skill with:
+
+```bash
+crill skills install
+```
+
+The mirrored skill source lives under [`skills/crill`](skills/crill).
