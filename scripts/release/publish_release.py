@@ -89,7 +89,7 @@ def fetch_public_release_metadata(
     if missing:
         joined = ", ".join(missing)
         raise SystemExit(f"missing source release assets for {tag}: {joined}")
-    release_url = payload.get("html_url")
+    release_url = payload.get("url")
     if not isinstance(release_url, str):
         raise SystemExit(f"missing release url for public release {tag}")
     return ReleaseMetadata(
