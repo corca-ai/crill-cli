@@ -14,15 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Check required secrets
+      - name: Check required secret
         env:
-          SOURCE_RELEASE_TOKEN: ${{ secrets.SOURCE_RELEASE_TOKEN }}
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
-          test -n "$SOURCE_RELEASE_TOKEN" || {
-            echo "SOURCE_RELEASE_TOKEN is required to read the private source release."
-            exit 1
-          }
           test -n "$HOMEBREW_TAP_TOKEN" || {
             echo "HOMEBREW_TAP_TOKEN is required to push corca-ai/homebrew-tap."
             exit 1
@@ -45,7 +40,6 @@ jobs:
       - name: Publish public release and bump tap
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_RELEASE_TOKEN: ${{ secrets.SOURCE_RELEASE_TOKEN }}
         run: |
           python3 scripts/release/publish_release.py \
             --version "${{ steps.version.outputs.version }}" \
