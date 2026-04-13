@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check required secrets
+        env:
+          SOURCE_RELEASE_TOKEN: ${{ secrets.SOURCE_RELEASE_TOKEN }}
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          test -n "$SOURCE_RELEASE_TOKEN" || {
+            echo "SOURCE_RELEASE_TOKEN is required to read the private source release."
+            exit 1
+          }
+          test -n "$HOMEBREW_TAP_TOKEN" || {
+            echo "HOMEBREW_TAP_TOKEN is required to push corca-ai/homebrew-tap."
+            exit 1
+          }
+
+      - uses: actions/checkout@v6
+        with:
+          repository: corca-ai/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish public release and bump tap
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RELEASE_TOKEN: ${{ secrets.SOURCE_RELEASE_TOKEN }}
+        run: |
+          python3 scripts/release/publish_release.py \
+            --version "${{ steps.version.outputs.version }}" \
+            --tap-repo-dir homebrew-tap
