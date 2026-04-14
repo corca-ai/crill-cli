@@ -212,6 +212,6 @@ crill doctor --json   # agent-consumable output
 
 ## Latest Public Release
 
-- Version: `0.3.0`
-- Release: https://github.com/corca-ai/crill-cli/releases/tag/v0.3.0
-- Mirrored from upstream release: https://github.com/corca-ai/crill/releases/tag/v0.3.0
+- Version: `0.4.0`
+- Release: https://github.com/corca-ai/crill-cli/releases/tag/v0.4.0
+- Mirrored from upstream release: https://github.com/corca-ai/crill/releases/tag/v0.4.0
