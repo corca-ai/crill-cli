@@ -154,8 +154,9 @@ Installing the binary is public. Using gated product commands is not.
 - Gated commands (`setup`, `scan`, `replay`, `diff`, `report`, and related)
   fail until the operator has a live session.
 - Ungated commands remain available for inspection and recovery:
-  `crill --help`, `crill --version`, `crill doctor`, `crill uninstall`,
-  `crill auth ...`, `crill provider ...`.
+  `crill --help`, `crill --version`, `crill commands --json`,
+  `crill doctor`, `crill uninstall`, `crill runs audit`,
+  `crill skills install`, `crill auth ...`, `crill provider ...`.
 
 ## Quick Start
 
@@ -176,6 +177,7 @@ crill scan com.example.app --platform ios --perspective novice
 crill evidence runs/<timestamp>/
 crill analyze runs/<timestamp>/ --question "What is the biggest UX risk in this run?"
 crill report runs/<timestamp>/
+crill runs audit runs/<timestamp>/
 ```
 
 Reuse the recorded artifact:
@@ -203,15 +205,38 @@ crill doctor
 crill doctor --json   # agent-consumable output
 ```
 
+`crill runs audit` is the quickest binary-level telemetry summary for a saved
+run. It reports artifact depth plus latency, token, and cost metrics from the
+persisted scenario packet. Add `--baseline <run>` to compare a new run against
+the previous good one, and optional regression budgets when QA or automation
+should fail fast on slower or more expensive exploration:
+
+```bash
+crill runs trend com.example.app
+crill runs budget set qa-default --max-llm-avg-regression-ms 1000 --max-total-token-regression 500
+crill runs budget fallback qa-default
+crill runs budget assign com.example.app qa-default
+crill runs trend com.example.app --budget qa-default
+crill runs trend com.example.app --max-breadth-drop 1
+crill runs audit runs/<timestamp>/
+crill runs audit runs/<timestamp>/ --json   # agent-consumable summary
+crill runs audit runs/current/ --app com.example.app --budget qa-default
+crill runs audit runs/current/ --baseline runs/baseline/ --budget qa-default
+crill runs audit runs/current/ --baseline runs/baseline/ --max-llm-avg-regression-ms 1000 --max-total-token-regression 500
+```
+
 ## Where To Look Next
 
 - `crill --help`, `crill <command> --help`
+- `crill commands --json`  *(stable machine-readable command discovery for agents/tools)*
+- `crill runs audit --help`  *(artifact depth + latency/token/cost summary)*
+- `crill runs trend --help`  *(recent app-level telemetry history and drift view)*
 - Public operator skill: [`skills/crill`](skills/crill)
 - iOS real-device reference: [`skills/crill/references/ios-real-device.md`](skills/crill/references/ios-real-device.md)
 - Public release notes: [releases](https://github.com/corca-ai/crill-cli/releases)
 
 ## Latest Public Release
 
-- Version: `0.4.0`
-- Release: https://github.com/corca-ai/crill-cli/releases/tag/v0.4.0
-- Mirrored from upstream release: https://github.com/corca-ai/crill/releases/tag/v0.4.0
+- Version: `0.4.1`
+- Release: https://github.com/corca-ai/crill-cli/releases/tag/v0.4.1
+- Mirrored from upstream release: https://github.com/corca-ai/crill/releases/tag/v0.4.1

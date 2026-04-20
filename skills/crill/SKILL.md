@@ -22,6 +22,7 @@ brew upgrade crill
 ```bash
 crill --version
 crill doctor
+crill commands --json
 ```
 
 3. Log in before any gated work:
@@ -36,6 +37,13 @@ crill auth whoami
 ```bash
 crill setup --ios
 crill scan --platform ios
+crill runs trend com.example.app
+crill runs budget set qa-default --max-llm-avg-regression-ms 1000 --max-total-token-regression 500
+crill runs budget fallback qa-default
+crill runs budget assign com.example.app qa-default
+crill runs trend com.example.app --budget qa-default
+crill runs trend com.example.app --max-breadth-drop 1
+crill runs audit runs/<new-run-dir> --app com.example.app --budget qa-default
 ```
 
 ## Recovery Rules
@@ -50,10 +58,32 @@ crill scan --platform ios
 
 - `crill --help`
 - `crill --version`
+- `crill commands --json`
 - `crill doctor`
 - `crill uninstall`
+- `crill runs audit`
+- `crill runs trend`
+- `crill skills install`
 - `crill auth ...`
 - `crill provider ...`
+
+## Inspecting Saved Runs
+
+Use `crill runs audit` when the task is to explain why a saved exploration got
+slower, deeper, or more expensive:
+
+```bash
+crill runs trend com.example.app
+crill runs budget set qa-default --max-llm-avg-regression-ms 1000 --max-total-token-regression 500
+crill runs budget fallback qa-default
+crill runs budget assign com.example.app qa-default
+crill runs trend com.example.app --budget qa-default
+crill runs trend com.example.app --max-breadth-drop 1
+crill runs audit runs/<timestamp>/
+crill runs audit runs/<timestamp>/ --json
+crill runs audit runs/current/ --baseline runs/baseline/ --budget qa-default
+crill runs audit runs/current/ --baseline runs/baseline/ --max-llm-avg-regression-ms 1000 --max-total-token-regression 500
+```
 
 ## Installing This Skill
 
