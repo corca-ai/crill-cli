@@ -8,43 +8,90 @@ description: Help an agent operate the public crill binary with a human in the l
 Use this skill when `crill` was installed from the public binary distribution,
 not from a private source checkout.
 
-## Core flow
+## Detect State
 
-1. Install or upgrade:
-
-```bash
-brew install corca-ai/tap/crill
-brew upgrade crill
-```
-
-2. Verify the install:
+1. Read the live machine state first:
 
 ```bash
-crill --version
-crill doctor
-crill commands --json
+crill doctor --json
 ```
 
-3. Log in before any gated work:
+2. Treat the machine as a first-run install target only when both are true:
+
+- `sections.home[]` contains `home.session.json` with `status: "warn"` and
+  `detail: "absent"`
+- `~/.crill/device-state.json` does not exist yet
+
+3. If the machine already has a session and a saved iOS device, skip straight
+   to app resolution. Do not repeat install or login just because this file is
+   a first-run orchestrator.
+
+## First-Run Path
+
+1. If there is no operator session yet, stop and tell the user exactly:
 
 ```bash
-crill auth login <email>
-crill auth whoami
+Run `crill auth login <email>` in your terminal first, then call this skill again.
 ```
 
-4. Run the actual workflow only after login succeeds:
+Do not try to perform interactive login inside the skill. The operator must
+run the terminal command themselves and follow the current CLI prompt flow.
+
+2. If a session exists but no iOS device has been selected yet, run:
 
 ```bash
 crill setup --ios
-crill scan --platform ios
-crill runs trend com.example.app
-crill runs budget set qa-default --max-llm-avg-regression-ms 1000 --max-total-token-regression 500
-crill runs budget fallback qa-default
-crill runs budget assign com.example.app qa-default
-crill runs trend com.example.app --budget qa-default
-crill runs trend com.example.app --max-breadth-drop 1
-crill runs audit runs/<new-run-dir> --app com.example.app --budget qa-default
 ```
+
+3. If `setup --ios` blocks on a human-only step, stop with the four-line
+   contract below. Do not pad it with extra prose.
+
+## Steady-State Path
+
+1. Ask the participant: `What app are we testing?`
+2. Resolve that answer against installed apps:
+
+```bash
+crill ios apps --json
+```
+
+3. Match the participant's reply against app names first, then bundle ids.
+   If exactly one match is plausible, confirm the bundle id with the user
+   before running anything. If zero or multiple matches remain, ask again.
+
+4. Run the first narrow scan:
+
+```bash
+crill scan <bundle-id> --platform ios --max-actions 10 --max-states 10
+```
+
+5. Use the final `Output: .../scenario.yaml` line from scan output as the run
+   artifact pointer. The report target is the parent run directory:
+
+```bash
+crill report runs/<timestamp>/
+```
+
+6. The golden path for this skill is `scan -> report`. `crill runs audit` is
+   optional maintainer follow-up, not part of the default participant path.
+
+## Human-Only Stop Contract
+
+When one of the following blockers appears, stop and report exactly four
+lines:
+
+1. what is blocked
+2. why `crill` or the skill cannot do it itself
+3. the exact human action required
+4. the exact resume command
+
+Human-only blockers to treat this way:
+
+- macOS `sudo` password prompts
+- Apple ID password or 2FA inside `xcodes` / Xcode install flow
+- iPhone "Trust This Computer?" prompt
+- iPhone developer certificate trust in `Settings -> General -> VPN & Device Management`
+- keeping the iPhone awake and unlocked during setup or scan
 
 ## Recovery Rules
 
@@ -61,29 +108,10 @@ crill runs audit runs/<new-run-dir> --app com.example.app --budget qa-default
 - `crill commands --json`
 - `crill doctor`
 - `crill uninstall`
-- `crill runs audit`
-- `crill runs trend`
+- `crill ios apps`
 - `crill skills install`
 - `crill auth ...`
 - `crill provider ...`
-
-## Inspecting Saved Runs
-
-Use `crill runs audit` when the task is to explain why a saved exploration got
-slower, deeper, or more expensive:
-
-```bash
-crill runs trend com.example.app
-crill runs budget set qa-default --max-llm-avg-regression-ms 1000 --max-total-token-regression 500
-crill runs budget fallback qa-default
-crill runs budget assign com.example.app qa-default
-crill runs trend com.example.app --budget qa-default
-crill runs trend com.example.app --max-breadth-drop 1
-crill runs audit runs/<timestamp>/
-crill runs audit runs/<timestamp>/ --json
-crill runs audit runs/current/ --baseline runs/baseline/ --budget qa-default
-crill runs audit runs/current/ --baseline runs/baseline/ --max-llm-avg-regression-ms 1000 --max-total-token-regression 500
-```
 
 ## Installing This Skill
 

@@ -144,6 +144,12 @@ distribution is coming soon.
 
 A one-line curl installer and a signed macOS app bundle are coming soon.
 
+For a step-by-step install flow aimed at an agent driving a Mac + iPhone pair
+(including what `crill setup --ios` automates and the human-only steps it
+hands back), see [`docs/install.md`](docs/install.md). For the first internal
+iOS trial session script, see
+[`docs/internal-ios-trial.md`](docs/internal-ios-trial.md).
+
 <!-- SCREENSHOT: install-flow (first-run Gatekeeper confirmation). Coming soon. -->
 
 ## Access Control
@@ -213,7 +219,7 @@ should fail fast on slower or more expensive exploration:
 
 ```bash
 crill runs trend com.example.app
-crill runs budget set qa-default --max-llm-avg-regression-ms 1000 --max-total-token-regression 500
+crill runs budget set qa-default --max-llm-avg-regression-ms 1000 --max-total-token-regression 500 --max-breadth-drop 1
 crill runs budget fallback qa-default
 crill runs budget assign com.example.app qa-default
 crill runs trend com.example.app --budget qa-default
@@ -231,12 +237,14 @@ crill runs audit runs/current/ --baseline runs/baseline/ --max-llm-avg-regressio
 - `crill commands --json`  *(stable machine-readable command discovery for agents/tools)*
 - `crill runs audit --help`  *(artifact depth + latency/token/cost summary)*
 - `crill runs trend --help`  *(recent app-level telemetry history and drift view)*
+- Agent-driven install guide: [`docs/install.md`](docs/install.md)
+- Internal iOS trial script: [`docs/internal-ios-trial.md`](docs/internal-ios-trial.md)
 - Public operator skill: [`skills/crill`](skills/crill)
 - iOS real-device reference: [`skills/crill/references/ios-real-device.md`](skills/crill/references/ios-real-device.md)
 - Public release notes: [releases](https://github.com/corca-ai/crill-cli/releases)
 
 ## Latest Public Release
 
-- Version: `0.4.1`
-- Release: https://github.com/corca-ai/crill-cli/releases/tag/v0.4.1
-- Mirrored from upstream release: https://github.com/corca-ai/crill/releases/tag/v0.4.1
+- Version: `0.5.0`
+- Release: https://github.com/corca-ai/crill-cli/releases/tag/v0.5.0
+- Mirrored from upstream release: https://github.com/corca-ai/crill/releases/tag/v0.5.0
