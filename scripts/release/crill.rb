@@ -15,7 +15,15 @@ class Crill < Formula
     sha256 "__ARM64_SHA__"
 
     def install
-      bin.install "crill"
+      libexec.install Dir["*"]
+      bin.install_symlink libexec/"crill"
+    end
+
+    def post_install
+      # Best-effort warm-up so the first operator launch after install or
+      # upgrade does not also pay the cold-start bundle load cost. Keep the
+      # install successful even if Gatekeeper or host policy blocks execution.
+      quiet_system libexec/"crill", "--version"
     end
   end
 

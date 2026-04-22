@@ -25,10 +25,24 @@ crill doctor --json
 ```
 
 2. Use the onboarding contract phases to decide what is already complete and
-   what still needs work. Skip completed phases and resume from the first
-   incomplete phase.
+   what still needs work. Treat these rows as the phase gates:
 
-3. If there is no operator session yet, stop and tell the user exactly:
+- `gate.session` must be `ok`
+- `providers.default` must be `ok`
+- `home.saved-ios-device` must be `ok`
+
+Skip completed phases and resume from the first incomplete phase.
+
+3. If `gate.reachable` is `fail`, or `gate.session.extra.reason` is
+   `gate_unreachable` / `server_unreachable`, stop on the gate/network problem
+   and ask the operator to restore reachability before continuing from:
+
+```bash
+crill doctor --json
+```
+
+4. If `gate.session` is not `ok` for missing or stale-session reasons, tell
+   the user exactly:
 
 ```bash
 Run `crill auth login <email>` in your terminal first, then continue from this onboarding contract.
@@ -42,8 +56,13 @@ When the onboarding contract reaches provider selection, inspect the available
 auth sources:
 
 ```bash
-crill provider status
+crill provider status --json
 ```
+
+If `providers.default` is already `ok`, keep it and continue unless the
+immediately previous first scan failed on the first LLM decision. In that
+failure case, re-run provider recovery instead of trusting the saved default
+again.
 
 If exactly one provider is available, say which one was detected and persist it:
 
@@ -127,6 +146,9 @@ Human-only blockers to treat this way:
 3. Always include the exact resume command.
 4. Use [`references/ios-real-device.md`](references/ios-real-device.md) only
    after reading the current `crill` output and error text.
+5. If the first LLM decision fails during the first scan, stop and return to
+   provider recovery instead of letting the scan drift. Do not trust
+   `providers.default == ok` alone after that failure.
 
 ## What is not gated
 

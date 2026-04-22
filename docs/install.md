@@ -29,7 +29,8 @@ The current macOS binary is unsigned. If macOS blocks the first launch, open
 Finder and approve the binary once:
 
 1. Open `/opt/homebrew/bin/crill` on Apple Silicon, or `/usr/local/bin/crill`
-   on Intel Macs.
+   on Intel Macs. If the symlink does not expose the approval prompt cleanly,
+   open the real bundled binary instead: `.../Cellar/crill/<version>/libexec/crill`.
 2. Right-click, choose **Open**, and confirm once.
 3. Return to the terminal and run `crill` normally.
 
@@ -52,6 +53,19 @@ crill skills install
 
 The installed public `crill` skill now includes a shared onboarding reference
 at `references/onboarding.md`.
+
+If you want one quick readiness snapshot before switching sessions, run:
+
+```bash
+crill doctor --json
+```
+
+The important rows for the handoff are `gate.session`, `install.skill.global`,
+and `install.skill.claude-link`.
+
+That is only the install-to-skill handoff. In the next session, the skill may
+still continue onboarding until `providers.default` and `home.saved-ios-device`
+also become `ok`.
 
 Now close this agent session. Open a new one, invoke the `crill` skill, and
 have it read its own `references/onboarding.md` before it continues. That

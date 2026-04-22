@@ -19,7 +19,19 @@ Read the current state first:
 crill doctor --json
 ```
 
-When the machine has no operator session yet, stop and tell the user exactly:
+Completion rule: `gate.session` from `crill doctor --json` must be `ok`.
+
+If `gate.reachable` is `fail`, or `gate.session.extra.reason` is
+`gate_unreachable` / `server_unreachable`, stop on the gate/network problem.
+Do not tell the operator to log in again yet. Ask them to restore gate reachability,
+then resume with:
+
+```bash
+crill doctor --json
+```
+
+When `gate.session` is missing, invalid, or bound to a different gate, stop
+and tell the user exactly:
 
 ```bash
 Run `crill auth login <email>` in your terminal first, then continue from this onboarding contract.
@@ -34,10 +46,15 @@ Goal: one preferred provider is chosen and persisted for future scans.
 Inspect available auth sources:
 
 ```bash
-crill provider status
+crill provider status --json
 ```
 
 Rules:
+
+0. If `providers.default` from `crill doctor --json` is already `ok`, keep it
+   and continue, unless the immediately previous first scan failed on the first
+   LLM decision. In that failure case, re-enter Phase 2 and require a fresh
+   provider recovery step instead of trusting the saved default again.
 
 1. If exactly one provider is clearly available, tell the operator which one
    was detected and persist it:
@@ -77,9 +94,16 @@ explicit `--provider` flag overrides it.
 
 ## Phase 3 — iOS Device Setup
 
-Goal: one real iOS device is selected and usable for `crill`.
+Goal: one real iOS device is selected, connected, and not obviously blocked on
+host-side signing/provider readiness.
 
-If no saved iOS device is present yet, run:
+Completion rule: `home.saved-ios-device` from `crill doctor --json` must be `ok`.
+This proves the saved device is still connected and signing/provider readiness
+looks plausible; it does not replace `crill setup --ios` if later app listing
+or scan output shows a real Appium/WDA/trust blocker.
+
+If no saved iOS device is present yet, or the saved one is no longer connected,
+run:
 
 ```bash
 crill setup --ios
@@ -151,6 +175,11 @@ crill report runs/<timestamp>/
 
 The golden path is `scan -> report`. `crill runs audit` is maintainer
 follow-up, not part of the participant default path.
+
+If the first LLM decision fails, stop and return to provider recovery instead
+of letting the scan continue with blind back-navigation. Do not trust the
+existing `providers.default == ok` row alone after that failure; require a
+fresh provider recovery step first.
 
 ## Recovery Rules
 

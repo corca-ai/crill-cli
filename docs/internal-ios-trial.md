@@ -56,7 +56,9 @@ export 받습니다.
 - `@corca.ai` 주소라면 activation code / invitation key 없이 로그인돼야 한다.
 - 사람 개입이 필요한 단계는 에이전트가 스스로 우회하지 말고 정확히 요청한다.
 - `crill skills install` 까지 끝낸다.
-- 마지막에 `crill doctor` 또는 `crill doctor --json` 으로 상태를 확인한다.
+- 마지막에 `crill doctor --json` 으로 상태를 확인한다.
+- 이때 특히 `gate.session`, `install.skill.global`, `install.skill.claude-link`
+  가 기대대로 보이는지 확인한다.
 - 끝나면 "이제 새 세션에서 `crill` skill 을 실행해 보세요" 라고 안내한다.
 
 호스트마다 skill 호출 표기가 다를 수 있으므로, 기본 원칙은 **현재 에이전트가
@@ -71,7 +73,15 @@ export 받습니다.
 - skill 이 먼저 `crill doctor --json` 으로 현재 상태를 읽는다.
 - skill 이 자기 `references/onboarding.md` 계약을 읽고 첫 미완료 단계부터 이어간다.
 - 첫 skill 실행 상태라면 온보딩 경로로 들어간다.
-- 아직 iOS 기기 선택이 안 되어 있으면 `crill setup --ios` 를 진행한다.
+- `gate.session`, `providers.default`, `home.saved-ios-device` 가 각각
+  온보딩 phase gate 로 쓰인다.
+- 다만 `gate.reachable` 가 깨졌으면 재로그인이 아니라 gate/network 복구로
+  먼저 돌려야 한다.
+- 아직 iOS 기기 선택이 안 되어 있거나, 저장된 기기가 지금 연결되어 있지 않으면
+  `crill setup --ios` 를 진행한다.
+- `home.saved-ios-device == ok` 는 저장된 기기가 아직 연결돼 있고 signing/provider
+  readiness 가 크게 깨져 보이지 않는다는 뜻이지, 모든 WDA/trust/Appium seam 을
+  완전히 증명한 것은 아니다.
 - 앱을 무엇을 테스트할지 물어본다.
 - `crill ios apps --json` 으로 설치된 앱을 보고 앱 이름 또는 bundle id 를
   해석한다.
@@ -96,8 +106,12 @@ export 받습니다.
 - `@corca.ai` 로그인에서 activation code 없이 자연스럽게 들어가는가
 - 에이전트가 사람 개입이 필요한 순간을 정확히 구분하는가
 - provider 를 어떻게 감지했고 무엇을 쓰겠다고 말하는지가 충분히 자연스러운가
+- provider 선택/저장이 `crill provider status --json` 과 `crill config provider set`
+  흐름으로 자연스럽게 이어지는가
 - 새 세션 handoff 가 자연스러운가
 - `crill` skill 첫 실행이 `doctor` 기반으로 온보딩에 들어가는가
+- 첫 LLM 결정이 실패하면 애매하게 back/skip 하지 않고 provider 복구로 되돌아가는가
+- 그때 기존 `providers.default == ok` 만 믿고 같은 provider 로 바로 재시도하지 않는가
 - 앱 선택 뒤 첫 `scan -> report` 경로가 실제로 닫히는가
 
 ## 참여자에게 보낼 Slack 문안
