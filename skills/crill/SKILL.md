@@ -8,7 +8,15 @@ description: Help an agent operate the public crill binary with a human in the l
 Use this skill when `crill` was installed from the public binary distribution,
 not from a private source checkout.
 
-## Detect State
+Read and follow [`references/onboarding.md`](references/onboarding.md) first.
+That file is the shared onboarding contract for both the install prompt and
+this skill. Do not invent a parallel setup script in chat.
+
+If the operator needs to invoke this skill manually, use the form their host
+expects. Typical examples are `/crill` in Claude Code and `$crill` in Codex,
+but prefer the host's own skill-invocation guidance over stale memory.
+
+## State Detection
 
 1. Read the live machine state first:
 
@@ -16,66 +24,85 @@ not from a private source checkout.
 crill doctor --json
 ```
 
-2. Treat the machine as a first-run install target only when both are true:
+2. Use the onboarding contract phases to decide what is already complete and
+   what still needs work. Skip completed phases and resume from the first
+   incomplete phase.
 
-- `sections.home[]` contains `home.session.json` with `status: "warn"` and
-  `detail: "absent"`
-- `~/.crill/device-state.json` does not exist yet
-
-3. If the machine already has a session and a saved iOS device, skip straight
-   to app resolution. Do not repeat install or login just because this file is
-   a first-run orchestrator.
-
-## First-Run Path
-
-1. If there is no operator session yet, stop and tell the user exactly:
+3. If there is no operator session yet, stop and tell the user exactly:
 
 ```bash
-Run `crill auth login <email>` in your terminal first, then call this skill again.
+Run `crill auth login <email>` in your terminal first, then continue from this onboarding contract.
 ```
 
-Do not try to perform interactive login inside the skill. The operator must
-run the terminal command themselves and follow the current CLI prompt flow.
+Do not try to perform interactive login inside the skill.
 
-2. If a session exists but no iOS device has been selected yet, run:
+## Provider Selection
+
+When the onboarding contract reaches provider selection, inspect the available
+auth sources:
 
 ```bash
-crill setup --ios
+crill provider status
 ```
 
-3. If `setup --ios` blocks on a human-only step, stop with the four-line
-   contract below. Do not pad it with extra prose.
+If exactly one provider is available, say which one was detected and persist it:
 
-## Steady-State Path
+```bash
+crill config provider set <provider>
+```
 
-1. Ask the participant: `What app are we testing?`
-2. Resolve that answer against installed apps:
+If multiple providers are available, ask once which one to use for this trial,
+then persist that answer with the same command.
+
+If no provider is available, stop with one concrete provider path, not a vague
+list. Prefer the host CLI the operator is already using:
+
+- Claude Code host -> `claude auth login`
+- Codex host -> `codex login`
+- Gemini host -> `gemini` auth / OAuth setup
+
+Then give the exact resume command:
+
+```bash
+crill config provider set <provider>
+```
+
+## Target App Resolution
+
+When the onboarding contract reaches app resolution, ask the participant:
+
+`What app are we testing?`
+
+Then resolve that answer against installed apps:
 
 ```bash
 crill ios apps --json
 ```
 
-3. Match the participant's reply against app names first, then bundle ids.
-   If exactly one match is plausible, confirm the bundle id with the user
-   before running anything. If zero or multiple matches remain, ask again.
+Match by app name first, then bundle id. If exactly one match is plausible,
+confirm the bundle id before scanning. If zero or multiple matches remain, ask
+again instead of guessing.
 
-4. Run the first narrow scan:
+## First-Run Preset
+
+The default participant path uses one fixed first-run preset:
 
 ```bash
 crill scan <bundle-id> --platform ios --max-actions 10 --max-states 10
 ```
 
-5. Use the final `Output: .../scenario.yaml` line from scan output as the run
-   artifact pointer. The report target is the parent run directory:
+Before running the scan, confirm the exact plan in one compact line:
+
+`I will scan <bundle-id> on iOS with provider <provider> using the first-run preset (max-actions 10, max-states 10). Continue?`
+
+Use the final `Output: .../scenario.yaml` line from scan output as the run
+artifact pointer. The report target is the parent run directory:
 
 ```bash
 crill report runs/<timestamp>/
 ```
 
-6. The golden path for this skill is `scan -> report`. `crill runs audit` is
-   optional maintainer follow-up, not part of the default participant path.
-
-## Human-Only Stop Contract
+## Human-only blockers
 
 When one of the following blockers appears, stop and report exactly four
 lines:
@@ -89,16 +116,16 @@ Human-only blockers to treat this way:
 
 - macOS `sudo` password prompts
 - Apple ID password or 2FA inside `xcodes` / Xcode install flow
-- iPhone "Trust This Computer?" prompt
+- iPhone `Trust This Computer?` prompt
 - iPhone developer certificate trust in `Settings -> General -> VPN & Device Management`
 - keeping the iPhone awake and unlocked during setup or scan
 
-## Recovery Rules
+## Recovery rules
 
 1. Prefer current binary output over stale memory.
 2. Keep human asks minimal and one step at a time.
 3. Always include the exact resume command.
-4. Use [references/ios-real-device.md](references/ios-real-device.md) only
+4. Use [`references/ios-real-device.md`](references/ios-real-device.md) only
    after reading the current `crill` output and error text.
 
 ## What is not gated
@@ -109,9 +136,10 @@ Human-only blockers to treat this way:
 - `crill doctor`
 - `crill uninstall`
 - `crill ios apps`
-- `crill skills install`
 - `crill auth ...`
 - `crill provider ...`
+- `crill config provider ...`
+- `crill skills install`
 
 ## Installing This Skill
 

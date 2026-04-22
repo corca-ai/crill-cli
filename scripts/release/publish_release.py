@@ -187,10 +187,14 @@ def update_homebrew_tap(
     ensure_clean_repo(tap_repo_dir)
     ensure_git_identity(tap_repo_dir)
     formula = render_homebrew_formula(meta, template_path.read_text(encoding="utf-8"))
-    formula_path = tap_repo_dir / "crill.rb"
+    formula_path = tap_repo_dir / "Formula" / "crill.rb"
+    formula_path.parent.mkdir(parents=True, exist_ok=True)
+    legacy_formula_path = tap_repo_dir / "crill.rb"
     if not formula_path.exists() or formula_path.read_text(encoding="utf-8") != formula:
         formula_path.write_text(formula, encoding="utf-8")
-    run(["git", "add", "crill.rb"], cwd=tap_repo_dir)
+    if legacy_formula_path.exists():
+        legacy_formula_path.unlink()
+    run(["git", "add", "Formula/crill.rb", "crill.rb"], cwd=tap_repo_dir)
     status = run(["git", "status", "--short"], cwd=tap_repo_dir)
     if status.stdout.strip():
         run(

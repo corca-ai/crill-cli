@@ -240,11 +240,12 @@ crill runs audit runs/current/ --baseline runs/baseline/ --max-llm-avg-regressio
 - Agent-driven install guide: [`docs/install.md`](docs/install.md)
 - Internal iOS trial script: [`docs/internal-ios-trial.md`](docs/internal-ios-trial.md)
 - Public operator skill: [`skills/crill`](skills/crill)
+- Shared first-run contract: [`skills/crill/references/onboarding.md`](skills/crill/references/onboarding.md)
 - iOS real-device reference: [`skills/crill/references/ios-real-device.md`](skills/crill/references/ios-real-device.md)
 - Public release notes: [releases](https://github.com/corca-ai/crill-cli/releases)
 
 ## Latest Public Release
 
-- Version: `0.5.0`
-- Release: https://github.com/corca-ai/crill-cli/releases/tag/v0.5.0
-- Mirrored from upstream release: https://github.com/corca-ai/crill/releases/tag/v0.5.0
+- Version: `0.5.1`
+- Release: https://github.com/corca-ai/crill-cli/releases/tag/v0.5.1
+- Mirrored from upstream release: https://github.com/corca-ai/crill/releases/tag/v0.5.1

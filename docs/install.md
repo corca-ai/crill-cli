@@ -2,8 +2,8 @@
 
 This document is for an agent driving a first internal iOS `crill` setup with
 a human in the loop. Keep this file thin: install the public binary, get a
-session, install the public skill, then hand off to that skill for the actual
-device setup and first scan.
+session, install the public skill, then hand off to the installed skill's
+shared onboarding contract for the actual setup and first scan.
 
 ## Prerequisites
 
@@ -50,8 +50,17 @@ crill skills install
 
 ## Next Step
 
-Now close this agent session. Open a new one and invoke the `crill` skill. It
-will drive the remaining setup, app resolution, first scan, and report flow.
+The installed public `crill` skill now includes a shared onboarding reference
+at `references/onboarding.md`.
+
+Now close this agent session. Open a new one, invoke the `crill` skill, and
+have it read its own `references/onboarding.md` before it continues. That
+reference owns provider selection, iOS setup, app resolution, the first-run
+scan preset, and the first `scan -> report` flow.
+
+Use the skill-invocation form your current host expects. Typical examples are
+`/crill` in Claude Code and `$crill` in Codex, but prefer the host's own skill
+or slash-command guidance over hardcoded memory.
 
 ## Human-Only Steps
 
