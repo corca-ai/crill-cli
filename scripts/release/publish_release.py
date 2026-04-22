@@ -194,7 +194,7 @@ def update_homebrew_tap(
         formula_path.write_text(formula, encoding="utf-8")
     if legacy_formula_path.exists():
         legacy_formula_path.unlink()
-    run(["git", "add", "Formula/crill.rb", "crill.rb"], cwd=tap_repo_dir)
+    run(["git", "add", "-A"], cwd=tap_repo_dir)
     status = run(["git", "status", "--short"], cwd=tap_repo_dir)
     if status.stdout.strip():
         run(

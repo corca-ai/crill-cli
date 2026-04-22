@@ -246,6 +246,6 @@ crill runs audit runs/current/ --baseline runs/baseline/ --max-llm-avg-regressio
 
 ## Latest Public Release
 
-- Version: `0.5.2`
-- Release: https://github.com/corca-ai/crill-cli/releases/tag/v0.5.2
-- Mirrored from upstream release: https://github.com/corca-ai/crill/releases/tag/v0.5.2
+- Version: `0.5.3`
+- Release: https://github.com/corca-ai/crill-cli/releases/tag/v0.5.3
+- Mirrored from upstream release: https://github.com/corca-ai/crill/releases/tag/v0.5.3
