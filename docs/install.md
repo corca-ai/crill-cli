@@ -1,17 +1,16 @@
 # crill install
 
-This document is for an agent driving a first internal iOS `crill` setup with
+This document is for an agent driving a first internal iOS `crill` install with
 a human in the loop. Keep this file thin: install the public binary, get a
-session, install the public skill, then hand off to the installed skill's
-shared onboarding contract for the actual setup and first scan.
+session, install the public skill, then let `crill doctor --next-action`
+choose the next onboarding step until the machine is ready for the first scan.
 
 ## Prerequisites
 
-- A Mac
-- An iPhone plus USB cable
-- Homebrew
-- An Apple ID already signed in through macOS System Settings
-- The target app already installed on the iPhone
+- An Apple Silicon Mac
+- Either an iPhone plus USB cable, or Xcode with an available iOS simulator
+- For real-device work, an Apple ID already signed in through macOS System Settings
+- The target app available on the chosen iPhone or simulator
 
 Do not pre-collect an LLM API key or invitation key for this flow. The only
 required login input up front is the operator email address.
@@ -19,18 +18,29 @@ required login input up front is the operator email address.
 ## Install The Binary
 
 ```bash
-brew install corca-ai/tap/crill
+curl -sSfL https://raw.githubusercontent.com/corca-ai/crill/main/install.sh | sh
 crill --version
+```
+
+`install.sh` installs both the CLI bundle and the owned iOS runtime. On a
+healthy fresh machine, the same step now materializes
+`~/.crill/runtime.json` and `~/.crill/runtime/current/` before the first
+`crill init ios`.
+
+If a later `crill doctor --next-action` reports missing or broken owned-runtime
+paths, rerun the installer to restore them:
+
+```bash
+curl -sSfL https://raw.githubusercontent.com/corca-ai/crill/main/install.sh | sh
 ```
 
 ## Gatekeeper One-Time Unblock
 
 The current macOS binary is unsigned. If macOS blocks the first launch, open
-Finder and approve the binary once:
+Finder and approve the bundled binary once:
 
-1. Open `/opt/homebrew/bin/crill` on Apple Silicon, or `/usr/local/bin/crill`
-   on Intel Macs. If the symlink does not expose the approval prompt cleanly,
-   open the real bundled binary instead: `.../Cellar/crill/<version>/libexec/crill`.
+1. Open `~/.local/bin/crill.bundle/crill` in Finder. If you installed to a
+   custom `INSTALL_DIR`, use `<install-dir>/crill.bundle/crill` instead.
 2. Right-click, choose **Open**, and confirm once.
 3. Return to the terminal and run `crill` normally.
 
@@ -51,26 +61,36 @@ crill skills install
 
 ## Next Step
 
-The installed public `crill` skill now includes a shared onboarding reference
-at `references/onboarding.md`.
-
-If you want one quick readiness snapshot before switching sessions, run:
+Run the doctor loop:
 
 ```bash
-crill doctor --json
+crill doctor --next-action
 ```
 
-The important rows for the handoff are `gate.session`, `install.skill.global`,
-and `install.skill.claude-link`.
+If an agent is driving, give it this prompt:
 
-That is only the install-to-skill handoff. In the next session, the skill may
-still continue onboarding until `providers.default` and `home.saved-ios-device`
-also become `ok`.
+```md
+Use `crill` on this machine.
+Start with `crill doctor --next-action`.
+If it returns a command, run it exactly.
+After each step, rerun `crill doctor --next-action` and repeat.
+Stop only when doctor says the machine is ready for the first iOS scan.
+Then ask me which app to test, resolve it with `crill ios apps --json`, and run one quick first scan.
+If a human-only step blocks progress, stop and tell me:
+1. what is blocked,
+2. why you cannot do it,
+3. the exact human action,
+4. the exact resume command.
+```
 
-Now close this agent session. Open a new one, invoke the `crill` skill, and
-have it read its own `references/onboarding.md` before it continues. That
-reference owns provider selection, iOS setup, app resolution, the first-run
-scan preset, and the first `scan -> report` flow.
+The important readiness rows behind that loop are `install.skill.global`,
+`gate.session`, `providers.default`, and `home.saved-ios-device`
+(which currently also covers the supported simulator path even though the row
+name still says "device").
+
+If the current host supports an installed `crill` skill, you can still invoke
+it after `crill skills install`, but the source of truth for the next step is
+now `crill doctor --next-action`, not a separate onboarding phase checklist.
 
 Use the skill-invocation form your current host expects. Typical examples are
 `/crill` in Claude Code and `$crill` in Codex, but prefer the host's own skill
@@ -84,4 +104,4 @@ If the agent stops on one of these, the human must handle it directly:
 - Apple ID password or 2FA during Xcode install
 - iPhone "Trust This Computer?" prompt
 - iPhone developer certificate trust in `Settings -> General -> VPN & Device Management`
-- Keeping the iPhone awake and unlocked during setup or scan
+- Keeping the iPhone awake and unlocked during init or scan

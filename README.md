@@ -34,7 +34,7 @@ Positioning in one line:
 
 ## What It Does Today
 
-- `setup` prepares iOS automation prerequisites.
+- `init ios` prepares iOS automation prerequisites.
 - `scan` explores an app through the local automation backend and records a
   replayable scenario.
 - `analyze` reads a recorded run and produces a separate LLM-backed analysis
@@ -117,10 +117,11 @@ provider method.
 narrow:
 
 - **Host**: macOS only (Apple Silicon).
-- **Target platform**: iOS real device only. Android infrastructure exists
-  in the codebase but is not validated at this stage.
-- **Reliability**: iOS real-device runs can still fail around Xcode provider
-  liveness or WebDriverAgent launch. Recovery paths are documented; most
+- **Target platform**: iOS internal-QA on real device or simulator. Real
+  device remains the primary path; simulator is the supported Tier 2 path.
+- **Reliability**: real-device runs can still fail around Xcode provider
+  liveness or WebDriverAgent launch. Simulator runs are supported for
+  prepared-device and phone-free checks. Recovery paths are documented; most
   blockers have an explicit resume command.
 - **LLM access**: you bring your own Anthropic or OpenAI key via
   `crill provider login`.
@@ -130,25 +131,36 @@ surface stabilizes.
 
 ## Install
 
+Current prebuilt support is Apple Silicon macOS only.
+
+```bash
+curl -sSfL https://raw.githubusercontent.com/corca-ai/crill/main/install.sh | sh
+crill --version
+```
+
+`install.sh` is the primary internal-QA path. It installs the binary into
+`~/.local/bin`, provisions the owned iOS runtime under `~/.crill/`, repairs
+PATH reachability when needed, and keeps the install surface inside `crill`'s
+own control instead of depending on Homebrew state.
+The same install step now materializes `~/.crill/runtime.json` and
+`~/.crill/runtime/current/` before the first `crill init ios`.
+
+Homebrew remains available as a legacy mirror, not the operator path:
+
 ```bash
 brew install corca-ai/tap/crill
 crill --version
 ```
 
-The tap currently ships an unsigned binary. The first run is blocked by
-macOS Gatekeeper; right-click `/usr/local/bin/crill` (or
-`/opt/homebrew/bin/crill` on Apple Silicon) in Finder, choose **Open**, and
-confirm once to add it to the Gatekeeper exception list. After that,
-`crill` runs from any terminal without friction. Signed and notarized
-distribution is coming soon.
+Both distribution paths currently ship an unsigned binary. If macOS blocks the
+first launch, right-click the bundled binary in Finder, choose **Open**, and
+confirm once to add it to the Gatekeeper exception list. Signed and notarized
+distribution is coming later.
 
-A one-line curl installer and a signed macOS app bundle are coming soon.
-
-For a step-by-step install flow aimed at an agent driving a Mac + iPhone pair
-(including what `crill setup --ios` automates and the human-only steps it
-hands back), see [`docs/install.md`](docs/install.md). For the first internal
-iOS trial session script, see
-[`docs/internal-ios-trial.md`](docs/internal-ios-trial.md).
+For a step-by-step install flow aimed at an agent driving a Mac with either a
+connected iPhone or an iOS simulator (including what `crill init ios`
+automates and the human-only steps it hands back), see
+[`docs/install.md`](docs/install.md).
 
 <!-- SCREENSHOT: install-flow (first-run Gatekeeper confirmation). Coming soon. -->
 
@@ -157,7 +169,7 @@ iOS trial session script, see
 Installing the binary is public. Using gated product commands is not.
 
 - `crill auth login <email>` exchanges an invitation for a session token.
-- Gated commands (`setup`, `scan`, `replay`, `diff`, `report`, and related)
+- Gated commands (`init ios`, `scan`, `replay`, `diff`, `report`, and related)
   fail until the operator has a live session.
 - Ungated commands remain available for inspection and recovery:
   `crill --help`, `crill --version`, `crill commands --json`,
@@ -166,16 +178,49 @@ Installing the binary is public. Using gated product commands is not.
 
 ## Quick Start
 
-Log in to the access gate with the invitation key sent to you, then
-configure an LLM provider and prepare a device:
+Supported first-run path prerequisites:
+
+- one Mac
+- either one iPhone plus USB cable, or Xcode with an available iOS simulator
+- the target app available on the chosen iPhone or simulator
+- for real-device work, Apple ID already signed into Xcode or macOS System Settings
+
+Install the binary, sign in, and install the public skill:
+
+```bash
+curl -sSfL https://raw.githubusercontent.com/corca-ai/crill/main/install.sh | sh
+crill --version
+crill auth login <email>
+crill skills install
+crill doctor --next-action
+```
+
+If you want an agent to drive the rest, give it this prompt:
+
+```md
+Use `crill` on this machine.
+Start with `crill doctor --next-action`.
+If it returns a command, run it exactly.
+After each step, rerun `crill doctor --next-action` and repeat.
+Stop only when doctor says the machine is ready for the first iOS scan.
+Then ask me which app to test, resolve it with `crill ios apps --json`, and run one quick first scan.
+If a human-only step blocks progress, stop and tell me:
+1. what is blocked,
+2. why you cannot do it,
+3. the exact human action,
+4. the exact resume command.
+```
+
+You can still run the steps manually. After signing in, configure an LLM
+provider and prepare a device:
 
 ```bash
 crill auth login your@email.example
 crill provider login anthropic --key "$ANTHROPIC_API_KEY"
-crill setup --ios
+crill init ios
 ```
 
-Run a first scan and explore the outputs:
+Run a first quick-check scan and explore the outputs:
 
 ```bash
 crill scan com.example.app --platform ios --max-actions 10 --max-states 10
@@ -208,6 +253,7 @@ any time a run is misbehaving:
 
 ```bash
 crill doctor
+crill doctor --next-action   # one machine-friendly next onboarding step
 crill doctor --json   # agent-consumable output
 ```
 
@@ -238,7 +284,6 @@ crill runs audit runs/current/ --baseline runs/baseline/ --max-llm-avg-regressio
 - `crill runs audit --help`  *(artifact depth + latency/token/cost summary)*
 - `crill runs trend --help`  *(recent app-level telemetry history and drift view)*
 - Agent-driven install guide: [`docs/install.md`](docs/install.md)
-- Internal iOS trial script: [`docs/internal-ios-trial.md`](docs/internal-ios-trial.md)
 - Public operator skill: [`skills/crill`](skills/crill)
 - Shared first-run contract: [`skills/crill/references/onboarding.md`](skills/crill/references/onboarding.md)
 - iOS real-device reference: [`skills/crill/references/ios-real-device.md`](skills/crill/references/ios-real-device.md)
@@ -246,6 +291,6 @@ crill runs audit runs/current/ --baseline runs/baseline/ --max-llm-avg-regressio
 
 ## Latest Public Release
 
-- Version: `0.5.4`
-- Release: https://github.com/corca-ai/crill-cli/releases/tag/v0.5.4
-- Mirrored from upstream release: https://github.com/corca-ai/crill/releases/tag/v0.5.4
+- Version: `0.5.6`
+- Release: https://github.com/corca-ai/crill-cli/releases/tag/v0.5.6
+- Mirrored from upstream release: https://github.com/corca-ai/crill/releases/tag/v0.5.6

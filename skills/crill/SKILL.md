@@ -9,8 +9,8 @@ Use this skill when `crill` was installed from the public binary distribution,
 not from a private source checkout.
 
 Read and follow [`references/onboarding.md`](references/onboarding.md) first.
-That file is the shared onboarding contract for both the install prompt and
-this skill. Do not invent a parallel setup script in chat.
+That file points back to `crill doctor --next-action` as the source of truth
+for the next onboarding step. Do not invent a parallel setup script in chat.
 
 If the operator needs to invoke this skill manually, use the form their host
 expects. Typical examples are `/crill` in Claude Code and `$crill` in Codex,
@@ -21,39 +21,26 @@ but prefer the host's own skill-invocation guidance over stale memory.
 1. Read the live machine state first:
 
 ```bash
-crill doctor --json
+crill doctor --next-action
 ```
 
-2. Use the onboarding contract phases to decide what is already complete and
-   what still needs work. Treat these rows as the phase gates:
-
-- `gate.session` must be `ok`
-- `providers.default` must be `ok`
-- `home.saved-ios-device` must be `ok`
-
-Skip completed phases and resume from the first incomplete phase.
+2. If the next action is an executable command, run it exactly, then rerun
+   `crill doctor --next-action`.
 
 3. If `gate.reachable` is `fail`, or `gate.session.extra.reason` is
    `gate_unreachable` / `server_unreachable`, stop on the gate/network problem
    and ask the operator to restore reachability before continuing from:
 
 ```bash
-crill doctor --json
+crill doctor --next-action
 ```
 
-4. If `gate.session` is not `ok` for missing or stale-session reasons, tell
-   the user exactly:
-
-```bash
-Run `crill auth login <email>` in your terminal first, then continue from this onboarding contract.
-```
-
-Do not try to perform interactive login inside the skill.
+4. Keep iterating until `crill doctor --next-action` flips from recovery work
+   to app resolution or first-scan readiness.
 
 ## Provider Selection
 
-When the onboarding contract reaches provider selection, inspect the available
-auth sources:
+When doctor points at provider selection, inspect the available auth sources:
 
 ```bash
 crill provider status --json
@@ -88,7 +75,7 @@ crill config provider set <provider>
 
 ## Target App Resolution
 
-When the onboarding contract reaches app resolution, ask the participant:
+When doctor says the machine is ready for the first scan, ask the participant:
 
 `What app are we testing?`
 
@@ -104,7 +91,7 @@ again instead of guessing.
 
 ## First-Run Preset
 
-The default participant path uses one fixed first-run preset:
+The default participant path uses one fixed quick-check preset:
 
 ```bash
 crill scan <bundle-id> --platform ios --max-actions 10 --max-states 10
@@ -112,7 +99,7 @@ crill scan <bundle-id> --platform ios --max-actions 10 --max-states 10
 
 Before running the scan, confirm the exact plan in one compact line:
 
-`I will scan <bundle-id> on iOS with provider <provider> using the first-run preset (max-actions 10, max-states 10). Continue?`
+`I will scan <bundle-id> on iOS with provider <provider> using the quick-check preset. Continue?`
 
 Use the final `Output: .../scenario.yaml` line from scan output as the run
 artifact pointer. The report target is the parent run directory:
@@ -137,7 +124,7 @@ Human-only blockers to treat this way:
 - Apple ID password or 2FA inside `xcodes` / Xcode install flow
 - iPhone `Trust This Computer?` prompt
 - iPhone developer certificate trust in `Settings -> General -> VPN & Device Management`
-- keeping the iPhone awake and unlocked during setup or scan
+- keeping the iPhone awake and unlocked during init or scan
 
 ## Recovery rules
 
