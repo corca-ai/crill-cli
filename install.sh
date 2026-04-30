@@ -319,9 +319,6 @@ exception list. For install.sh, approve:
 
     $BUNDLE_DIR/$BINARY
 
-brew install corca-ai/tap/crill followed by crill --version walks through the
-same gate.
-
 Then log in to the access gate with your invitation key:
 
     crill auth login <your-email>
