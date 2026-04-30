@@ -47,13 +47,19 @@ Examples:
 - Codex host -> `codex login`
 - Gemini host -> `gemini` auth / OAuth setup
 
-## iOS Init Recovery
+## iOS Readiness Recovery
 
-If doctor points at iOS environment repair, run:
+Before the first real-device scan, run the operator-pasteable readiness
+aggregator on a connected iPhone:
 
 ```bash
-crill init ios
+crill doctor --ios-readiness
 ```
+
+It runs the four iOS tier-1 preflights (Developer Mode, Mac pairing, Xcode
+accounts, signing) and exits non-zero if any fail. Each failure already
+prints the four-part blocker contract; follow each blocker exactly as
+printed and re-run the same command until it passes.
 
 If this blocks on a human-only step, stop with:
 
@@ -66,7 +72,9 @@ Human-only blockers include:
 
 - macOS `sudo` password prompts
 - Apple ID password or 2FA inside the Xcode install flow
+- iPhone Developer Mode toggle in `Settings -> Privacy & Security -> Developer Mode` (iOS 16+)
 - iPhone `Trust This Computer?` prompt
+- adding an Apple ID in `Xcode -> Settings -> Accounts` when none is configured
 - iPhone developer certificate trust in `Settings -> General -> VPN & Device Management`
 - keeping the iPhone awake and unlocked during init or scan
 
@@ -92,6 +100,12 @@ Run the first quick-check scan:
 crill scan <bundle-id> --platform ios --max-actions 10 --max-states 10
 crill report runs/<timestamp>/
 ```
+
+Use these scan-depth names in participant-facing chat:
+
+- `quick check`: `--max-actions 10 --max-states 10`
+- `standard exploration`: omit both flags and use the default scan limits
+- `deeper exploration`: increase both flags intentionally after the first run succeeds
 
 If the first LLM decision fails, return to provider recovery instead of
 trusting the saved provider state blindly.

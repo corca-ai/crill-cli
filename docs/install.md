@@ -18,20 +18,20 @@ required login input up front is the operator email address.
 ## Install The Binary
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/corca-ai/crill/main/install.sh | sh
+curl -sSfL https://raw.githubusercontent.com/corca-ai/crill-cli/main/install.sh | sh
 crill --version
 ```
 
 `install.sh` installs both the CLI bundle and the owned iOS runtime. On a
 healthy fresh machine, the same step now materializes
 `~/.crill/runtime.json` and `~/.crill/runtime/current/` before the first
-`crill init ios`.
+`crill scan`.
 
 If a later `crill doctor --next-action` reports missing or broken owned-runtime
 paths, rerun the installer to restore them:
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/corca-ai/crill/main/install.sh | sh
+curl -sSfL https://raw.githubusercontent.com/corca-ai/crill-cli/main/install.sh | sh
 ```
 
 ## Gatekeeper One-Time Unblock

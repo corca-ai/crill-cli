@@ -19,7 +19,8 @@ Slack 문안만 보내고, 같은 회의실에서 설치와 첫 실행을 같이
 - 한 번의 스캔이 `scenario.yaml` 과 런 디렉터리라는 재사용 가능한 아티팩트를
   만들고, 그 결과를 이후 `report`, `replay`, `diff` 같은 흐름에 다시 씁니다.
 - 이번 트라이얼의 목적은 "모든 기능 검증" 이 아니라, 에이전트가 설치부터 첫
-  iOS 실기기 스캔과 리포트까지 무리 없이 끌고 가는지 보는 것입니다.
+  iOS 스캔과 리포트까지 무리 없이 끌고 가는지 보는 것입니다. 실기기가 기본
+  경로지만, simulator도 지원되는 Tier 2 내부 QA 경로로 봅니다.
 
 ## 당일 진행 순서
 
@@ -50,7 +51,7 @@ export 받습니다.
 
 이 단계에서 기대하는 흐름은 아래와 같습니다.
 
-- `brew install corca-ai/tap/crill` 로 바이너리를 설치한다.
+- `install.sh` 로 바이너리와 owned iOS runtime 을 같이 설치한다.
 - Gatekeeper 가 막으면 사람이 해야 하는 동작을 정확히 요구한다.
 - `crill auth login <email>` 으로 로그인까지 자연스럽게 유도한다.
 - `@corca.ai` 주소라면 activation code / invitation key 없이 로그인돼야 한다.
@@ -77,11 +78,12 @@ export 받습니다.
   온보딩 phase gate 로 쓰인다.
 - 다만 `gate.reachable` 가 깨졌으면 재로그인이 아니라 gate/network 복구로
   먼저 돌려야 한다.
-- 아직 iOS 기기 선택이 안 되어 있거나, 저장된 기기가 지금 연결되어 있지 않으면
-  `crill setup --ios` 를 진행한다.
-- `home.saved-ios-device == ok` 는 저장된 기기가 아직 연결돼 있고 signing/provider
-  readiness 가 크게 깨져 보이지 않는다는 뜻이지, 모든 WDA/trust/Appium seam 을
-  완전히 증명한 것은 아니다.
+- 아직 iOS target 선택이 안 되어 있거나, 저장된 device/simulator 가 지금
+  사용 가능하지 않으면 `crill init ios` 를 진행한다.
+- `home.saved-ios-device == ok` 는 저장된 iOS target 이 아직 사용 가능하다는
+  뜻이다. 실기기라면 signing/provider readiness 가 크게 깨져 보이지 않는다는
+  의미까지 포함하지만, simulator 에서는 그 signing 조건을 요구하지 않는다.
+  어느 쪽이든 모든 iOS runner/trust/provider seam 을 완전히 증명한 것은 아니다.
 - 앱을 무엇을 테스트할지 물어본다.
 - `crill ios apps --json` 으로 설치된 앱을 보고 앱 이름 또는 bundle id 를
   해석한다.
@@ -90,15 +92,15 @@ export 받습니다.
 
 ## 첫 스캔 기대값
 
-첫 스캔은 좁고 단순해야 합니다.
+첫 스캔은 quick check 성격으로 좁고 단순해야 합니다.
 
-- iOS 실기기 1대
+- iOS target 1개
 - 앱 1개
 - 작은 한계값 (`--max-actions 10 --max-states 10`)
 - 첫 판은 예산 비교나 `diff` 를 붙이지 않는다
 
 첫 실행에서 "로그인 전까지만 탐색" 같은 우회 흐름을 만들기보다, 로그인 후
-좁은 첫 실기기 스캔 1회를 성공시키는 쪽을 우선합니다.
+좁은 첫 iOS 스캔 1회를 성공시키는 쪽을 우선합니다.
 
 ## 진행자가 볼 포인트
 
@@ -125,11 +127,10 @@ export 받습니다.
 끌고 가는가" 를 같이 봅니다.
 
 준비물:
-- 맥북
+- Apple Silicon 맥북
 - 아이폰 + 케이블
 - 시스템 설정에 로그인된 Apple ID
 - 아이폰에 이미 설치된 대상 앱
-- Homebrew
 
 세션이 시작되면 테스트하고 싶은 저장소에서 터미널을 열고, Codex 또는
 Claude Code 에 아래 문장을 그대로 넣어 주세요.

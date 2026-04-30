@@ -1,6 +1,6 @@
 ---
 name: crill
-description: Help an agent operate the public crill binary with a human in the loop. Use when installing or upgrading crill, logging into the access gate, recovering from Appium/Xcode/signing/device trust failures, or translating runtime errors into the smallest next human action plus the exact resume command.
+description: Help an agent operate the public crill binary with a human in the loop. Use when installing or upgrading crill, logging into the access gate, recovering from agent-device/Xcode/signing/device trust failures, or translating runtime errors into the smallest next human action plus the exact resume command.
 ---
 
 # Crill
@@ -37,6 +37,25 @@ crill doctor --next-action
 
 4. Keep iterating until `crill doctor --next-action` flips from recovery work
    to app resolution or first-scan readiness.
+
+## iOS Readiness
+
+Before the first real-device scan, run the operator-pasteable readiness
+aggregator:
+
+```bash
+crill doctor --ios-readiness
+```
+
+It runs the four iOS tier-1 preflights (Developer Mode, Mac pairing, Xcode
+accounts, signing) and exits non-zero if any fail. The output already follows
+the four-part blocker contract — what is blocked, why crill cannot finish, the
+exact human action, the exact resume command — so do not paraphrase or merge
+its lines into a checklist. Have the operator paste the full output and follow
+each blocker as printed, then re-run the same command until it returns a clean
+pass.
+
+A clean readiness pass is the gate before the first real-device scan.
 
 ## Provider Selection
 
@@ -97,6 +116,12 @@ The default participant path uses one fixed quick-check preset:
 crill scan <bundle-id> --platform ios --max-actions 10 --max-states 10
 ```
 
+Use these participant-facing scan-depth names when discussing the next run:
+
+- `quick check`: `--max-actions 10 --max-states 10`
+- `standard exploration`: omit both flags and use the default scan limits
+- `deeper exploration`: increase both flags intentionally after reviewing the first run
+
 Before running the scan, confirm the exact plan in one compact line:
 
 `I will scan <bundle-id> on iOS with provider <provider> using the quick-check preset. Continue?`
@@ -122,7 +147,9 @@ Human-only blockers to treat this way:
 
 - macOS `sudo` password prompts
 - Apple ID password or 2FA inside `xcodes` / Xcode install flow
+- iPhone Developer Mode toggle in `Settings -> Privacy & Security -> Developer Mode` (iOS 16+)
 - iPhone `Trust This Computer?` prompt
+- adding an Apple ID in `Xcode -> Settings -> Accounts` when none is configured
 - iPhone developer certificate trust in `Settings -> General -> VPN & Device Management`
 - keeping the iPhone awake and unlocked during init or scan
 
