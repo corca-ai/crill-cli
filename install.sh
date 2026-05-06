@@ -319,9 +319,12 @@ exception list. For install.sh, approve:
 
     $BUNDLE_DIR/$BINARY
 
-Then log in to the access gate with your invitation key:
+Then log in to the access gate with your operator email:
 
     crill auth login <your-email>
+
+For @corca.ai addresses, crill should sign in without asking for an
+invitation key. Other domains may still be prompted for one by the CLI.
 
 See https://github.com/corca-ai/crill-cli#for-internal-trial-operators
 for the full first-run walkthrough.

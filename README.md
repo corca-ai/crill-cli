@@ -161,7 +161,8 @@ human-only steps they hand back), see
 
 Installing the binary is public. Using gated product commands is not.
 
-- `crill auth login <email>` exchanges an invitation for a session token.
+- `crill auth login <email>` creates a session token; trusted internal
+  domains can sign in without an invitation key.
 - Gated commands (`scan`, `replay`, `diff`, `report`, and related)
   fail until the operator has a live session.
 - Ungated commands remain available for inspection and recovery:
